@@ -50,7 +50,7 @@ filter_func (GdkXEvent *gdk_xevent, GdkEvent *event, gpointer data)
       popup_keycode_to_free = x_event->xkey.keycode;
       popup = popup_create (screen);
     } else {
-      popup_on_key_press (popup, gdk_x11_get_default_xdisplay(), &x_event->xkey);
+      popup_on_key_press (popup, gdk_x11_get_default_xdisplay (), &x_event->xkey);
     }
     break;
   case KeyRelease:
@@ -73,8 +73,10 @@ filter_func (GdkXEvent *gdk_xevent, GdkEvent *event, gpointer data)
 static void
 grab (int keyval)
 {
-  XGrabKey (gdk_x11_get_default_xdisplay(),
-            XKeysymToKeycode (gdk_x11_get_default_xdisplay(), keyval),
+  Display *display;
+  display = gdk_x11_get_default_xdisplay ();
+  XGrabKey (display,
+            XKeysymToKeycode (display, keyval),
             AnyModifier,
             x_root_window,
             False,
@@ -87,17 +89,19 @@ grab (int keyval)
 static void
 disable_caps_lock_default_behavior ()
 {
+  Display *display;
   KeyCode keycode;
   XModifierKeymap *map;
-	char *error_msg;
+  char *error_msg;
 
-  keycode = XKeysymToKeycode (gdk_x11_get_default_xdisplay(), XK_Caps_Lock);
+  display = gdk_x11_get_default_xdisplay ();
+  keycode = XKeysymToKeycode (display, XK_Caps_Lock);
 
-  map = XGetModifierMapping (gdk_x11_get_default_xdisplay());
+  map = XGetModifierMapping (display);
   map = XDeleteModifiermapEntry (map, keycode, LockMapIndex);
 
   error_msg = NULL;
-  switch (XSetModifierMapping (gdk_x11_get_default_xdisplay(), map)) {
+  switch (XSetModifierMapping (display, map)) {
     case MappingSuccess:
       break;
     case MappingBusy:
@@ -220,7 +224,7 @@ main (int argc, char **argv)
     grab (XK_Caps_Lock);
   }
 
-  screen = ss_screen_new (wnck_screen_get_default (), gdk_x11_get_default_xdisplay(), x_root_window);
+  screen = ss_screen_new (wnck_screen_get_default (), gdk_x11_get_default_xdisplay (), x_root_window);
 
   gtk_main ();
 

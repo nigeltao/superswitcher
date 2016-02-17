@@ -28,33 +28,36 @@ gboolean show_window_thumbnails = FALSE;
 gboolean
 init_composite (void)
 {
+  Display *display;
+  display = gdk_x11_get_default_xdisplay ();
+
   // First, check the Composite extension, then the Render extension.
   int error_base;
   int event_base;
   int version_major;
   int version_minor;
 
-  if (!XCompositeQueryExtension (gdk_x11_get_default_xdisplay(), &event_base, &error_base)) {
+  if (!XCompositeQueryExtension (display, &event_base, &error_base)) {
     return FALSE;
   }
 
   // We need at least version 0.2, for XCompositeNameWindowPixmap.
-  XCompositeQueryVersion (gdk_x11_get_default_xdisplay(), &version_major, &version_minor);
+  XCompositeQueryVersion (display, &version_major, &version_minor);
   if (version_major <= 0 && version_minor < 2) {
     return FALSE;
   }
 
-  if (!XRenderQueryExtension (gdk_x11_get_default_xdisplay(), &event_base, &error_base)) {
+  if (!XRenderQueryExtension (display, &event_base, &error_base)) {
     return FALSE;
   }
 
   // We need at least version 0.6, for XRenderSetPictureTransform.
-  XRenderQueryVersion (gdk_x11_get_default_xdisplay(), &version_major, &version_minor);
+  XRenderQueryVersion (display, &version_major, &version_minor);
   if (version_major <= 0 && version_minor < 6) {
     return FALSE;
   }
 
-  XCompositeRedirectSubwindows (gdk_x11_get_default_xdisplay(),
+  XCompositeRedirectSubwindows (display,
       GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
       CompositeRedirectAutomatic);
   return TRUE;
@@ -65,7 +68,7 @@ init_composite (void)
 gboolean
 uninit_composite (void)
 {
-  XCompositeUnredirectSubwindows (gdk_x11_get_default_xdisplay(),
+  XCompositeUnredirectSubwindows (gdk_x11_get_default_xdisplay (),
       GDK_WINDOW_XWINDOW (gdk_get_default_root_window ()),
       CompositeRedirectAutomatic);
   return TRUE;
@@ -78,25 +81,27 @@ uninit_composite (void)
 static void
 initialize_thumbnailer_pictures (SSThumbnailer *thumbnailer)
 {
+  Display *display;
   GdkScreen *screen;
   XRenderPictFormat *format;
   XRenderPictureAttributes pa;
 
+  display = gdk_x11_get_default_xdisplay ();
   screen = gtk_widget_get_screen (thumbnailer->drawing_area);
-  format = XRenderFindVisualFormat (gdk_x11_get_default_xdisplay(), DefaultVisual (
-      gdk_x11_get_default_xdisplay(), gdk_screen_get_number (screen)));
+  format = XRenderFindVisualFormat (display, DefaultVisual (
+      display, gdk_screen_get_number (screen)));
 
   thumbnailer->thumbnail_pixmap = gdk_pixmap_new (
       thumbnailer->drawing_area->window, THUMBNAIL_SIZE, THUMBNAIL_SIZE, -1);
 
-  thumbnailer->thumbnail_picture = XRenderCreatePicture (gdk_x11_get_default_xdisplay(),
+  thumbnailer->thumbnail_picture = XRenderCreatePicture (display,
       GDK_DRAWABLE_XID (thumbnailer->thumbnail_pixmap), format, 0, NULL);
 
   pa.subwindow_mode = IncludeInferiors;
-  thumbnailer->window_picture = XRenderCreatePicture (gdk_x11_get_default_xdisplay(),
+  thumbnailer->window_picture = XRenderCreatePicture (display,
       wnck_window_get_xid (thumbnailer->wnck_window),
       format, CPSubwindowMode, &pa);
-  XRenderSetPictureFilter (gdk_x11_get_default_xdisplay(), thumbnailer->window_picture,
+  XRenderSetPictureFilter (display, thumbnailer->window_picture,
       "good", NULL, 0);
 }
 
@@ -114,6 +119,8 @@ on_expose_event (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   int offset_x, offset_y;
   SSWindow *window;
   SSThumbnailer *thumbnailer;
+  Display *display;
+  display = gdk_x11_get_default_xdisplay ();
   thumbnailer = (SSThumbnailer *) data;
   window = thumbnailer->window;
 
@@ -147,10 +154,10 @@ on_expose_event (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   transform.matrix[2][0] = XDoubleToFixed (0.0);
   transform.matrix[2][1] = XDoubleToFixed (0.0);
   transform.matrix[2][2] = XDoubleToFixed (1.0);
-  XRenderSetPictureTransform (gdk_x11_get_default_xdisplay(), thumbnailer->window_picture,
+  XRenderSetPictureTransform (display, thumbnailer->window_picture,
       &transform);
 
-  XRenderComposite (gdk_x11_get_default_xdisplay(), PictOpSrc,
+  XRenderComposite (display, PictOpSrc,
     thumbnailer->window_picture, None, thumbnailer->thumbnail_picture,
     0, 0, 0, 0, 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
 
@@ -198,6 +205,9 @@ ss_thumbnailer_new (SSWindow *window, WnckWindow *wnck_window, GtkWidget *drawin
 void
 ss_thumbnailer_free (SSThumbnailer *thumbnailer)
 {
+  Display *display;
+  display = gdk_x11_get_default_xdisplay ();
+
   if (thumbnailer == NULL) {
     return;
   }
@@ -207,11 +217,11 @@ ss_thumbnailer_free (SSThumbnailer *thumbnailer)
     thumbnailer->thumbnail_pixmap = NULL;
   }
   if (thumbnailer->thumbnail_picture != None) {
-    XRenderFreePicture (gdk_x11_get_default_xdisplay(), thumbnailer->thumbnail_picture);
+    XRenderFreePicture (display, thumbnailer->thumbnail_picture);
     thumbnailer->thumbnail_picture = None;
   }
   if (thumbnailer->window_picture != None) {
-    XRenderFreePicture (gdk_x11_get_default_xdisplay(), thumbnailer->window_picture);
+    XRenderFreePicture (display, thumbnailer->window_picture);
     thumbnailer->window_picture = None;
   }
 
