@@ -4,7 +4,7 @@
 #ifndef SUPERSWITCHER_DBUS_OBJECT_H
 #define SUPERSWITCHER_DBUS_OBJECT_H
 
-#include <glib/gtypes.h>
+#include <glib.h>
 
 #include "forward_declarations.h"
 

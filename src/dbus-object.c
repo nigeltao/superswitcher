@@ -1,7 +1,8 @@
 // Copyright (c) 2006 Nigel Tao.
 // Licenced under the GNU General Public Licence (GPL) version 2.
 
-#include "dbus-object.h"
+//#include "dbus-object.h"
+#include <glib.h>
 #ifdef HAVE_DBUS_GLIB
 
 #include <dbus/dbus-glib.h>

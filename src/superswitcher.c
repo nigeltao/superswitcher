@@ -50,9 +50,7 @@ filter_func (GdkXEvent *gdk_xevent, GdkEvent *event, gpointer data)
       popup_keycode_to_free = x_event->xkey.keycode;
       popup = popup_create (screen);
     } else {
-      popup_on_key_press (popup,
-                          GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
-                          &x_event->xkey);
+      popup_on_key_press (popup, gdk_x11_get_default_xdisplay (), &x_event->xkey);
     }
     break;
   case KeyRelease:
@@ -76,7 +74,7 @@ static void
 grab (int keyval)
 {
   Display *display;
-  display = GDK_DISPLAY_XDISPLAY (gdk_display_get_default ());
+  display = gdk_x11_get_default_xdisplay ();
   XGrabKey (display,
             XKeysymToKeycode (display, keyval),
             AnyModifier,
@@ -96,7 +94,7 @@ disable_caps_lock_default_behavior ()
   XModifierKeymap *map;
   char *error_msg;
 
-  display = GDK_DISPLAY_XDISPLAY (gdk_display_get_default ());
+  display = gdk_x11_get_default_xdisplay ();
   keycode = XKeysymToKeycode (display, XK_Caps_Lock);
 
   map = XGetModifierMapping (display);
@@ -226,9 +224,7 @@ main (int argc, char **argv)
     grab (XK_Caps_Lock);
   }
 
-  screen = ss_screen_new (wnck_screen_get_default (),
-                          GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
-                          x_root_window);
+  screen = ss_screen_new (wnck_screen_get_default (), gdk_x11_get_default_xdisplay (), x_root_window);
 
   gtk_main ();
 
