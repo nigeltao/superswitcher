@@ -18,8 +18,9 @@ typedef struct _SSXineramaScreen SSXineramaScreen;
 #define ABNORMAL_EXIT_CODE_ANOTHER_INSTANCE_IS_RUNNING  1
 #define ABNORMAL_EXIT_CODE_UNKNOWN_COMMAND_LINE_OPTION  2
 
-#include <glib/gerror.h>
-#include <glib/gtypes.h>
+//#include <glib/gerror.h>
+//#include <glib/gtypes.h>
+#include <glib.h>
 gboolean   superswitcher_hide_popup     (void *, GError **);
 gboolean   superswitcher_show_popup     (void *, GError **);
 gboolean   superswitcher_toggle_popup   (void *, GError **);
